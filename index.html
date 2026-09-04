@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>$SUBONE | NASDAQ Microcap Meme Engine</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --abyss: #050b14;
+    --deep: #0a1620;
+    --trench: #16283a;
+    --teal: #4EE3D0;
+    --coral: #FF6F59;
+    --foam: #EAF4F2;
+    --dim: #7C93A3;
+  }
+  body { background: var(--abyss); color: var(--foam); font-family: 'Inter', sans-serif; }
+  .font-display { font-family: 'Space Grotesk', sans-serif; }
+  .gradient-text {
+    background: linear-gradient(90deg, var(--teal), var(--coral));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .sonar-field {
+    background-image: repeating-radial-gradient(circle at 50% 30%, transparent 0, transparent 50px, rgba(78,227,208,0.06) 51px, transparent 52px);
+  }
+  .sonar-dot { position: relative; width: 8px; height: 8px; border-radius: 9999px; background: var(--teal); display: inline-block; }
+  .sonar-dot::before, .sonar-dot::after {
+    content: ''; position: absolute; inset: 0; border-radius: 9999px;
+    border: 1px solid var(--teal); animation: sonar 2.4s ease-out infinite;
+  }
+  .sonar-dot::after { animation-delay: 1.2s; }
+  @keyframes sonar { 0% { transform: scale(1); opacity: 0.7; } 100% { transform: scale(4.5); opacity: 0; } }
+  .gauge-track {
+    background-color: var(--abyss);
+    background-image: repeating-linear-gradient(90deg, var(--trench) 0, var(--trench) 1px, transparent 1px, transparent 22px);
+  }
+  .gauge-fill { background: linear-gradient(90deg, var(--teal), var(--coral)); }
+  .cta-fill { background: linear-gradient(90deg, var(--teal), var(--coral)); color: var(--abyss); }
+  .cta-fill:hover { filter: brightness(1.08); }
+  button:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+  @media (prefers-reduced-motion: reduce) {
+    .sonar-dot::before, .sonar-dot::after { animation: none; opacity: 0.5; }
+  }
+  ::selection { background: var(--coral); color: var(--abyss); }
+</style>
+</head>
+<body class="min-h-screen">
+
+<header class="max-w-4xl mx-auto px-6 py-6 flex justify-between items-center">
+  <span class="font-display font-bold text-lg tracking-tight">$SUBONE</span>
+  <button id="connectBtn" onclick="connectWallet()"
+    class="text-sm font-semibold px-5 py-2.5 rounded-full border border-[var(--trench)] hover:border-[var(--teal)] transition-colors">
+    Connect wallet
+  </button>
+</header>
+
+<section class="relative">
+  <div class="sonar-field absolute inset-0 -z-10"></div>
+  <div class="max-w-xl mx-auto text-center px-6 pt-10 pb-14">
+    <div class="inline-flex items-center gap-2.5 mb-6">
+      <span class="sonar-dot"></span>
+      <span class="text-sm text-[var(--dim)]">Presale is live on Arbitrum</span>
+    </div>
+    <h1 class="font-display text-6xl sm:text-7xl font-bold mb-5 gradient-text">$SUBONE</h1>
+    <p class="text-[var(--dim)] text-lg leading-relaxed">
+      Targeting $1M–$3M NASDAQ micro-cap stock liquidity on Arbitrum & Robinhood Chain. 
+      0% dev allocation. 100% raised ETH to LP.
+    </p>
+  </div>
+</section>
+
+<main class="max-w-4xl mx-auto px-6 pb-20">
+
+  <section class="grid md:grid-cols-5 gap-5">
+    <div class="md:col-span-3 bg-[var(--deep)] border border-[var(--trench)] rounded-2xl p-6">
+      <div class="flex justify-between items-baseline mb-3">
+        <span class="text-sm text-[var(--dim)]">Raised toward soft floor</span>
+        <span class="font-mono text-sm"><span id="raisedAmt">0.00</span> / 2.0 ETH ($5,000)</span>
+      </div>
+      <div class="gauge-track relative w-full h-3 rounded-full overflow-hidden mb-6">
+        <div id="progressBar" class="gauge-fill h-full rounded-full transition-all duration-700" style="width: 0%"></div>
+      </div>
+
+      <div class="bg-[var(--abyss)] border border-[var(--trench)] rounded-xl p-4 mb-3">
+        <div class="flex justify-between text-xs text-[var(--dim)] mb-1.5">
+          <span>You deposit</span>
+          <span>Arbitrum ETH</span>
+        </div>
+        <input type="number" id="ethInput" placeholder="0.10" step="0.01" min="0"
+          class="bg-transparent text-2xl w-full outline-none font-display font-bold placeholder:text-[var(--trench)]">
+      </div>
+
+      <button id="buyBtn" onclick="buyPresale()" class="cta-fill w-full font-bold text-base py-4 rounded-xl transition-transform hover:-translate-y-0.5">
+        Buy $SUBONE
+      </button>
+
+      <p class="text-xs text-[var(--dim)] text-center mt-4">
+        Contract verified & verified directly on Arbitrum.
+      </p>
+    </div>
+
+    <div class="md:col-span-2 bg-[var(--deep)] border border-[var(--trench)] rounded-2xl p-5 flex flex-col justify-center divide-y divide-[var(--trench)]">
+      <div class="flex justify-between items-center py-2.5">
+        <span class="text-sm text-[var(--dim)]">Team allocation</span>
+        <span class="font-mono text-sm text-[var(--teal)]">0%</span>
+      </div>
+      <div class="flex justify-between items-center py-2.5">
+        <span class="text-sm text-[var(--dim)]">Raised to LP</span>
+        <span class="font-mono text-sm text-[var(--teal)]">100%</span>
+      </div>
+      <div class="flex justify-between items-center py-2.5">
+        <span class="text-sm text-[var(--dim)]">Transaction tax</span>
+        <span class="font-mono text-sm text-[var(--coral)]">1.5%</span>
+      </div>
+      <div class="flex justify-between items-center py-2.5">
+        <span class="text-sm text-[var(--dim)]">Total supply</span>
+        <span class="font-mono text-sm">1B $SUBONE</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="mt-20">
+    <h2 class="font-display text-2xl font-bold text-center mb-10">How the dive works</h2>
+    <div class="relative">
+      <div class="hidden sm:block absolute top-4 left-0 right-0 h-px" style="background-color: var(--trench)"></div>
+      <div class="grid sm:grid-cols-3 gap-10">
+        <div class="relative">
+          <div class="relative z-10 w-8 h-8 rounded-full bg-[var(--deep)] border border-[var(--trench)] flex items-center justify-center font-mono text-xs mb-4" style="color: var(--teal)">0m</div>
+          <div class="font-display font-semibold mb-1.5">Surface</div>
+          <p class="text-sm text-[var(--dim)]">Connect any Arbitrum-ready wallet — MetaMask, Rabby, or Coinbase Wallet.</p>
+        </div>
+        <div class="relative">
+          <div class="relative z-10 w-8 h-8 rounded-full bg-[var(--deep)] border border-[var(--trench)] flex items-center justify-center font-mono text-xs mb-4" style="color: var(--teal)">60m</div>
+          <div class="font-display font-semibold mb-1.5">Descend</div>
+          <p class="text-sm text-[var(--dim)]">Deposit ETH into the presale pool. 100% of capital forms initial DEX liquidity.</p>
+        </div>
+        <div class="relative">
+          <div class="relative z-10 w-8 h-8 rounded-full bg-[var(--deep)] border border-[var(--trench)] flex items-center justify-center font-mono text-xs mb-4" style="color: var(--teal)">300m</div>
+          <div class="font-display font-semibold mb-1.5">Depths</div>
+          <p class="text-sm text-[var(--dim)]">$SUBONE unlocks as liquidity goes live. Trading volume fuels the treasury.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="mt-16 flex justify-center gap-6 text-sm">
+    <a href="#" class="text-[var(--dim)] hover:text-[var(--teal)] transition-colors">Twitter</a>
+    <a href="#" class="text-[var(--dim)] hover:text-[var(--teal)] transition-colors">Telegram</a>
+    <a href="#" class="text-[var(--dim)] hover:text-[var(--teal)] transition-colors">DexScreener</a>
+  </section>
+
+</main>
+
+<footer class="max-w-4xl mx-auto px-6 py-10 border-t border-[var(--trench)] text-center">
+  <p class="text-xs text-[var(--dim)] max-w-md mx-auto leading-relaxed opacity-70">
+    $SUBONE is an experimental micro-cap memecoin. 0% dev token allocation. 100% raised funds back LP.
+  </p>
+</footer>
+
+<script>
+  // -------------------------------------------------------------
+  // CONFIGURATION: PASTE YOUR DEPLOYED PRESALE CONTRACT ADDRESS HERE
+  // -------------------------------------------------------------
+  const PRESALE_CONTRACT_ADDRESS = "0xYOUR_PRESALE_CONTRACT_ADDRESS_HERE";
+  const ARBITRUM_CHAIN_ID = "0xa4b1"; // Chain ID 42161 in Hex
+
+  const PRESALE_ABI = [
+    "function deposit() public payable",
+    "function totalRaised() public view returns (uint256)",
+    "function presaleActive() public view returns (bool)"
+  ];
+
+  let provider = null;
+  let signer = null;
+  let userAccount = null;
+  let presaleContract = null;
+  const raiseGoalEth = 2.0;
+
+  // Read current raised ETH from blockchain on page load
+  async function initReadState() {
+    if (window.ethereum) {
+      try {
+        provider = new ethers.providers.Web3Provider(window.ethereum);
+        if (PRESALE_CONTRACT_ADDRESS !== "0xYOUR_PRESALE_CONTRACT_ADDRESS_HERE") {
+          const readOnlyContract = new ethers.Contract(PRESALE_CONTRACT_ADDRESS, PRESALE_ABI, provider);
+          const totalWei = await readOnlyContract.totalRaised();
+          const raisedEth = parseFloat(ethers.utils.formatEther(totalWei));
+          updateProgress(raisedEth);
+        }
+      } catch (err) {
+        console.error("Error fetching raised total:", err);
+      }
+    }
+  }
+
+  function updateProgress(raisedEth = 0) {
+    document.getElementById('raisedAmt').textContent = raisedEth.toFixed(2);
+    const pct = Math.min(100, (raisedEth / raiseGoalEth) * 100);
+    document.getElementById('progressBar').style.width = pct + '%';
+  }
+
+  async function checkAndSwitchNetwork() {
+    const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+    if (chainId !== ARBITRUM_CHAIN_ID) {
+      try {
+        await window.ethereum.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: ARBITRUM_CHAIN_ID }],
+        });
+      } catch (switchError) {
+        if (switchError.code === 4902) {
+          await window.ethereum.request({
+            method: 'wallet_addEthereumChain',
+            params: [{
+              chainId: ARBITRUM_CHAIN_ID,
+              chainName: 'Arbitrum One',
+              nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+              rpcUrls: ['https://arb1.arbitrum.io/rpc'],
+              blockExplorerUrls: ['https://arbiscan.io/']
+            }]
+          });
+        }
+      }
+    }
+  }
+
+  async function connectWallet() {
+    if (!window.ethereum) {
+      alert('No Web3 wallet detected. Please install MetaMask or Rabby.');
+      return;
+    }
+
+    try {
+      await checkAndSwitchNetwork();
+      provider = new ethers.providers.Web3Provider(window.ethereum);
+      await provider.send("eth_requestAccounts", []);
+      
+      signer = provider.getSigner();
+      userAccount = await signer.getAddress();
+
+      document.getElementById('connectBtn').innerText =
+        userAccount.slice(0, 6) + '...' + userAccount.slice(-4);
+
+      if (PRESALE_CONTRACT_ADDRESS !== "0xYOUR_PRESALE_CONTRACT_ADDRESS_HERE") {
+        presaleContract = new ethers.Contract(PRESALE_CONTRACT_ADDRESS, PRESALE_ABI, signer);
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Wallet connection failed or network switch was rejected.');
+    }
+  }
+
+  async function buyPresale() {
+    if (PRESALE_CONTRACT_ADDRESS === "0xYOUR_PRESALE_CONTRACT_ADDRESS_HERE") {
+      alert("Presale contract address not updated in code yet.");
+      return;
+    }
+
+    if (!userAccount || !presaleContract) {
+      await connectWallet();
+      if (!userAccount) return;
+    }
+
+    const amountInput = document.getElementById('ethInput').value;
+    const amount = parseFloat(amountInput);
+
+    if (!amount || amount <= 0) {
+      alert('Please enter a valid ETH deposit amount.');
+      return;
+    }
+
+    try {
+      const buyBtn = document.getElementById('buyBtn');
+      buyBtn.innerText = "Processing Transaction...";
+      buyBtn.disabled = true;
+
+      const tx = await presaleContract.deposit({
+        value: ethers.utils.parseEther(amountInput.toString())
+      });
+
+      alert(`Transaction submitted! Hash: ${tx.hash}`);
+      await tx.wait();
+
+      alert(`Deposit of ${amount} ETH confirmed!`);
+      buyBtn.innerText = "Buy $SUBONE";
+      buyBtn.disabled = false;
+
+      initReadState(); // Refresh UI progress bar
+    } catch (err) {
+      console.error(err);
+      alert('Transaction failed or was rejected.');
+      document.getElementById('buyBtn').innerText = "Buy $SUBONE";
+      document.getElementById('buyBtn').disabled = false;
+    }
+  }
+
+  window.addEventListener('DOMContentLoaded', initReadState);
+</script>
+</body>
+</html>
